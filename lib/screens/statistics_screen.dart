@@ -139,9 +139,9 @@ class _StatisticsState extends State<Statistics> {
                 ),
               ),
               subtitle: Text(
-                ' ${a[index].datetime.year}-${a[index].datetime.day}-${a[index].datetime.month}',
+                ' ${a[index].datetime.year}-${a[index].datetime.day}-${a[index].datetime.month.toString().padLeft(2, '0')}',
                 style: TextStyle(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
               trailing: Text(

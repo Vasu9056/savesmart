@@ -22,13 +22,14 @@ class AdddataAdapter extends TypeAdapter<Add_data> {
       fields[4] as DateTime,
       fields[1] as String,
       fields[0] as String,
+      splitDetails: (fields[5] as Map?)?.cast<String, double>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Add_data obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class AdddataAdapter extends TypeAdapter<Add_data> {
       ..writeByte(3)
       ..write(obj.IN)
       ..writeByte(4)
-      ..write(obj.datetime);
+      ..write(obj.datetime)
+      ..writeByte(5)
+      ..write(obj.splitDetails);
   }
 
   @override

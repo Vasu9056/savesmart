@@ -17,7 +17,11 @@ class Add_data extends HiveObject {
   DateTime datetime;
   String? groupId;
   
+  @HiveField(5)
+  Map<String, double>? splitDetails;
+  
   // Add_data(this.IN, this.amount, this.datetime, this.explain, this.name);
   Add_data(this.IN, this.amount, this.datetime, this.explain, this.name,
-      {this.groupId});
+      {this.groupId, this.splitDetails});
 }
+

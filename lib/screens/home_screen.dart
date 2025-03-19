@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:savesmart/data/models/add_date.dart';
-import 'package:savesmart/data/utility.dart';
+import 'package:savesmart/screens/add_expense.dart';
+import 'package:savesmart/data/utility.dart'; // Import utility.dart
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -11,100 +12,97 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  // ignore: prefer_typing_uninitialized_variables
-  var history;
   final box = Hive.box<Add_data>('data');
   final List<String> day = [
     'Monday',
     "Tuesday",
     "Wednesday",
     "Thursday",
-    'friday',
-    'saturday',
-    'sunday'
+    'Friday',
+    'Saturday',
+    'Sunday'
   ];
+
   String getGreeting() {
     int hour = DateTime.now().hour;
-
-    if (hour < 12) {
-      return "Good Morning";
-    } else if (hour < 17) {
-      return "Good Afternoon";
-    } else {
-      return "Good Evening";
-    }
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.group, color: Colors.white),
-      //       onPressed: () {
-      //         Navigator.pushNamed(context, '/groups');
-      //       },
-      //     )
-      //   ],
-      // ),
       body: SafeArea(
-          child: ValueListenableBuilder(
-              valueListenable: box.listenable(),
-              builder: (context, value, child) {
-                return CustomScrollView(
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: SizedBox(height: 340, child: _head()),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Transactions History',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 19,
-                                color: Colors.black,
-                              ),
-                            ),
-                            Text(
-                              'See all',
-                              style: TextStyle(
+        child: ValueListenableBuilder(
+          valueListenable: box.listenable(),
+          builder: (context, value, child) {
+            return CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(child: SizedBox(height: 340, child: _head())),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Transactions History',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 19,
+                              color: Colors.black),
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.pushNamed(context, '/groups'),
+                          child: const Text(
+                            'See Groups',
+                            style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
+                                color: Colors.grey),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          history = box.values.toList()[index];
-                          return getList(history, index);
-                        },
-                        childCount: box.length,
-                      ),
-                    )
-                  ],
-                );
-              })),
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final history = box.values.toList()[index];
+                      return getList(history, index);
+                    },
+                    childCount: box.length,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 
   Widget getList(Add_data history, int index) {
     return Dismissible(
-        key: UniqueKey(),
-        onDismissed: (direction) {
-          history.delete();
+      key: UniqueKey(),
+      onDismissed: (direction) {
+        history.delete();
+      },
+      child: GestureDetector(
+        onTap: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => AddExpenseScreen(
+                    expenseToEdit: history, groupId: history.groupId)),
+          );
+          if (result == true) setState(() {});
         },
-        child: get(index, history));
+        child: get(index, history),
+      ),
+    );
   }
 
   ListTile get(int index, Add_data history) {
@@ -115,19 +113,14 @@ class _HomeState extends State<Home> {
       ),
       title: Text(
         history.name,
-        style: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-        ),
+        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
-        '${day[history.datetime.weekday - 1]}  ${history.datetime.year}-${history.datetime.day}-${history.datetime.month.toString().padLeft(2, '0')}',
-        style: TextStyle(
-          fontWeight: FontWeight.w400,
-        ),
+        '${day[history.datetime.weekday - 1]} ${history.datetime.year}-${history.datetime.day}-${history.datetime.month.toString().padLeft(2, '0')}',
+        style: const TextStyle(fontWeight: FontWeight.w400),
       ),
       trailing: Text(
-        history.amount,
+        '₹${history.amount}',
         style: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 19,
@@ -145,7 +138,7 @@ class _HomeState extends State<Home> {
             Container(
               width: double.infinity,
               height: 240,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0xff368983),
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(20),
@@ -162,12 +155,9 @@ class _HomeState extends State<Home> {
                       child: Container(
                         height: 40,
                         width: 40,
-                        color: Color.fromRGBO(250, 250, 250, 0.1),
-                        child: Icon(
-                          Icons.notification_add_outlined,
-                          size: 30,
-                          color: Colors.white,
-                        ),
+                        color: const Color.fromRGBO(250, 250, 250, 0.1),
+                        child: const Icon(Icons.notification_add_outlined,
+                            size: 30, color: Colors.white),
                       ),
                     ),
                   ),
@@ -178,23 +168,22 @@ class _HomeState extends State<Home> {
                       children: [
                         Text(
                           getGreeting(),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 16,
                             color: Color.fromARGB(255, 224, 223, 223),
                           ),
                         ),
-                        Text(
+                        const Text(
                           'Vasu Langdecha',
                           style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 20,
+                              color: Colors.white),
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -207,138 +196,114 @@ class _HomeState extends State<Home> {
             height: 170,
             width: 320,
             decoration: BoxDecoration(
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: Color.fromRGBO(47, 125, 121, 0.3),
-                  offset: Offset(0, 6),
-                  blurRadius: 12,
-                  spreadRadius: 6,
-                ),
+                    color: Color.fromRGBO(47, 125, 121, 0.3),
+                    offset: Offset(0, 6),
+                    blurRadius: 12,
+                    spreadRadius: 6)
               ],
-              color: Color.fromARGB(255, 47, 125, 121),
+              color: const Color.fromARGB(255, 47, 125, 121),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Column(
               children: [
-                SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                const SizedBox(height: 10),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 15),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Total Balance',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Icon(
-                        Icons.more_horiz,
-                        color: Colors.white,
-                      ),
+                      Text('Total Balance',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                              color: Colors.white)),
+                      Icon(Icons.more_horiz, color: Colors.white),
                     ],
                   ),
                 ),
-                SizedBox(height: 7),
+                const SizedBox(height: 7),
                 Padding(
                   padding: const EdgeInsets.only(left: 15),
                   child: Row(
                     children: [
                       Text(
-                        '₹ ${total()}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 25,
-                          color: Colors.white,
-                        ),
+                        '₹ ${total().toStringAsFixed(2)}', // Using utility.dart total()
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 25,
+                            color: Colors.white),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 25),
+                const SizedBox(height: 25),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
-                        children: [
+                        children: const [
                           CircleAvatar(
                             radius: 13,
                             backgroundColor: Color.fromARGB(255, 85, 145, 141),
-                            child: Icon(
-                              Icons.arrow_downward,
-                              color: Colors.white,
-                              size: 19,
-                            ),
+                            child: Icon(Icons.arrow_downward,
+                                color: Colors.white, size: 19),
                           ),
                           SizedBox(width: 7),
-                          Text(
-                            'Income',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                              color: Color.fromARGB(255, 216, 216, 216),
-                            ),
-                          ),
+                          Text('Income',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                  color:
+                                      Color.fromARGB(255, 216, 216, 216))),
                         ],
                       ),
                       Row(
-                        children: [
+                        children: const [
                           CircleAvatar(
                             radius: 13,
                             backgroundColor: Color.fromARGB(255, 85, 145, 141),
-                            child: Icon(
-                              Icons.arrow_upward,
-                              color: Colors.white,
-                              size: 19,
-                            ),
+                            child: Icon(Icons.arrow_upward,
+                                color: Colors.white, size: 19),
                           ),
                           SizedBox(width: 7),
-                          Text(
-                            'Expenses',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                              color: Color.fromARGB(255, 216, 216, 216),
-                            ),
-                          ),
+                          Text('Expenses',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                  color:
+                                      Color.fromARGB(255, 216, 216, 216))),
                         ],
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '₹ ${income()}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 17,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        '₹ ${expenses()}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 17,
-                          color: Colors.white,
-                        ),
-                      ),
+                      Text('₹ ${income().toStringAsFixed(2)}', // Using utility.dart income()
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 17,
+                              color: Colors.white)),
+                      Text('- ₹ ${(expenses().abs()).toStringAsFixed(2)}', // Using utility.dart expenses()
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 17,
+                              color: Colors.white)),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
-        )
+        ),
       ],
     );
   }

@@ -16,7 +16,7 @@ class _GroupListScreenState extends State<GroupListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEFF4F9), // Softer background
+      // backgroundColor: const Color(0xFFEFF4F9), // Softer background
       appBar: AppBar(
         elevation: 0,
         backgroundColor: const Color(0xff368983),
@@ -42,7 +42,8 @@ class _GroupListScreenState extends State<GroupListScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ValueListenableBuilder(
                 valueListenable: groupBox.listenable(),
@@ -78,17 +79,20 @@ class _GroupListScreenState extends State<GroupListScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.group_outlined,
-                size: 60,
-                color: Colors.grey[600],
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.group_outlined,
+                  size: 60,
+                  color: Colors.grey[600],
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -184,8 +188,8 @@ class _GroupListScreenState extends State<GroupListScreen> {
         );
       },
       child: Card(
-        elevation: 3,
-        color: Colors.white.withOpacity(0.88),
+        elevation: 1.5,
+        // color: Colors.white.withOpacity(0.88),
         margin: const EdgeInsets.only(bottom: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(

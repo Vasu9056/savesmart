@@ -210,7 +210,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
     return Dismissible(
       key: Key(expense.key.toString()),
       background: Container(
-        color: Colors.red,
+      
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         margin: const EdgeInsets.only(bottom: 12),

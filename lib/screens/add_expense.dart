@@ -5,14 +5,14 @@ import 'package:savesmart/data/models/add_date.dart';
 class AddExpenseScreen extends StatefulWidget {
   final String? groupId;
   final Add_data? expenseToEdit;  
-  final int? expenseKey;       
+  final dynamic? expenseKey;       
 
   const AddExpenseScreen({
-    Key? key,
+    super.key,
     this.groupId,
     this.expenseToEdit,
     this.expenseKey,
-  }) : super(key: key);
+  });
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -26,6 +26,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   late TextEditingController explainController;
   late TextEditingController amountController;
   bool isEditing = false;
+  bool splitEqually = false; // New state for split equally
+  bool splitManually = false; // New state for split manually
+  List<TextEditingController> manualSplitControllers = []; // Controllers for manual split
+  List<String> groupMembers = []; // List of group members
 
   final List<String> categories = [
     'Food',
@@ -59,13 +63,28 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     amountController = TextEditingController(
       text: isEditing ? widget.expenseToEdit!.amount : '',
     );
+
+    // Initialize group members if groupId is provided
+    if (widget.groupId != null) {
+      // Fetch group members from the group data (assuming you have a method to get group members)
+      groupMembers = getGroupMembers(widget.groupId!);
+      manualSplitControllers = List.generate(groupMembers.length, (index) => TextEditingController());
+    }
   }
 
   @override
   void dispose() {
     explainController.dispose();
     amountController.dispose();
+    for (var controller in manualSplitControllers) {
+      controller.dispose();
+    }
     super.dispose();
+  }
+
+  List<String> getGroupMembers(String groupId) {
+    // Replace this with actual logic to fetch group members based on groupId
+    return ['Member 1', 'Member 2', 'Member 3'];
   }
 
   void _saveOrUpdateExpense() {
@@ -157,6 +176,18 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               _buildCard(
                 child: _buildDatePicker(),
               ),
+              if (widget.groupId != null) ...[
+                const SizedBox(height: 16),
+                _buildCard(
+                  child: _buildSplitExpenseOption(),
+                ),
+                if (splitManually) ...[
+                  const SizedBox(height: 16),
+                  _buildCard(
+                    child: _buildManualSplitFields(),
+                  ),
+                ],
+              ],
               const SizedBox(height: 32),
               _buildSaveButton(),
             ],
@@ -385,6 +416,84 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildSplitExpenseOption() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Split Expense',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Checkbox(
+              value: splitEqually,
+              onChanged: (value) {
+                setState(() {
+                  splitEqually = value!;
+                  if (splitEqually) splitManually = false;
+                });
+              },
+            ),
+            const Text('Split equally among group members'),
+          ],
+        ),
+        Row(
+          children: [
+            Checkbox(
+              value: splitManually,
+              onChanged: (value) {
+                setState(() {
+                  splitManually = value!;
+                  if (splitManually) splitEqually = false;
+                });
+              },
+            ),
+            const Text('Split manually'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildManualSplitFields() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Manual Split',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 12),
+        ...groupMembers.map((member) {
+          final controller = manualSplitControllers[groupMembers.indexOf(member)];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      hintText: member,
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ],
     );
   }

@@ -55,7 +55,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _isLoading = true;
     });
     
-    // Update user data
     _currentUser!.name = _nameController.text;
     await _currentUser!.save();
     
@@ -94,25 +93,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA), // Light background
       appBar: AppBar(
+        backgroundColor: const Color(0xff368983),
+        elevation: 0,
         title: const Text(
-          "Profile",
-          style: TextStyle(color: Colors.white),
+          "My Profile",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
           if (!_isEditing && !_isLoading)
             IconButton(
               icon: const Icon(Icons.edit, color: Colors.white),
-              onPressed: () {
-                setState(() {
-                  _isEditing = true;
-                });
-              },
+              onPressed: () => setState(() => _isEditing = true),
             ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xff368983)))
           : _currentUser == null
               ? _buildNoUserView()
               : _buildProfileView(),
@@ -126,22 +124,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Icon(
             Icons.person_off,
-            size: 80,
-            color: Colors.grey.shade400,
+            size: 100,
+            color: Colors.grey.shade300,
           ),
           const SizedBox(height: 20),
           Text(
-            "No user data found",
+            "No User Found",
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.grey.shade700,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _signOut,
-            child: const Text("Go to Login"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff368983),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text(
+              "Go to Login",
+              style: TextStyle(fontSize: 16, color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -150,16 +156,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileView() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 20),
-          _buildProfileImage(),
-          const SizedBox(height: 30),
-          _isEditing ? _buildEditForm() : _buildProfileInfo(),
-          const SizedBox(height: 30),
-          _buildActionButtons(),
+          // Profile Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Color(0xff368983),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            child: Column(
+              children: [
+                _buildProfileImage(),
+                const SizedBox(height: 16),
+                Text(
+                  _currentUser!.name,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _currentUser!.email,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _isEditing ? _buildEditForm() : _buildProfileInfo(),
+                const SizedBox(height: 30),
+                _buildActionButtons(),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -167,16 +208,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileImage() {
     return Stack(
+      alignment: Alignment.center,
       children: [
-        CircleAvatar(
-          radius: 60,
-          backgroundColor: const Color(0xff368983).withOpacity(0.2),
-          child: Text(
-            _currentUser!.name.substring(0, 1).toUpperCase(),
-            style: const TextStyle(
-              fontSize: 60,
-              fontWeight: FontWeight.bold,
-              color: Color(0xff368983),
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+          ),
+          child: CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.white,
+            child: Text(
+              _currentUser!.name.substring(0, 1).toUpperCase(),
+              style: const TextStyle(
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                color: Color(0xff368983),
+              ),
             ),
           ),
         ),
@@ -185,15 +234,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             bottom: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: const Color(0xff368983),
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: Colors.white,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
               ),
               child: const Icon(
                 Icons.camera_alt,
-                color: Colors.white,
+                color: Color(0xff368983),
                 size: 20,
               ),
             ),
@@ -203,63 +251,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileInfo() {
-    return Column(
-      children: [
-        Text(
-          _currentUser!.name,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          _currentUser!.email,
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey.shade600,
-          ),
-        ),
-        const SizedBox(height: 20),
-        _buildInfoCard(
-          "Account Created",
-          "${_currentUser!.createdDate.day}/${_currentUser!.createdDate.month}/${_currentUser!.createdDate.year}",
-          Icons.calendar_today,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoCard(String title, String value, IconData icon) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xff368983).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              icon,
-              color: const Color(0xff368983),
-              size: 20,
+          const Text(
+            "Account Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xff368983),
             ),
           ),
+          const SizedBox(height: 16),
+          _buildInfoRow(Icons.calendar_today, "Created On", 
+              "${_currentUser!.createdDate.day}/${_currentUser!.createdDate.month}/${_currentUser!.createdDate.year}"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xff368983), size: 20),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,7 +306,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 value,
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -287,63 +317,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildEditForm() {
-    return Column(
-      children: [
-        TextField(
-          controller: _nameController,
-          decoration: InputDecoration(
-            labelText: 'Full Name',
-            prefixIcon: const Icon(Icons.person),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xff368983), width: 2),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: 'Full Name',
+              prefixIcon: const Icon(Icons.person, color: Color(0xff368983)),
+              filled: true,
+              fillColor: Colors.grey.shade100,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 20),
-        TextField(
-          controller: _emailController,
-          enabled: false, // Email cannot be changed
-          decoration: InputDecoration(
-            labelText: 'Email',
-            prefixIcon: const Icon(Icons.email),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _emailController,
+            enabled: false,
+            decoration: InputDecoration(
+              labelText: 'Email',
+              prefixIcon: const Icon(Icons.email, color: Color(0xff368983)),
+              filled: true,
+              fillColor: Colors.grey.shade100,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildActionButtons() {
     if (_isEditing) {
       return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
-            child: OutlinedButton(
+            child: ElevatedButton(
               onPressed: () {
                 setState(() {
                   _isEditing = false;
                   _nameController.text = _currentUser!.name;
                 });
               },
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                side: const BorderSide(color: Color(0xff368983)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey.shade200,
+                foregroundColor: Colors.grey.shade800,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(fontSize: 16)),
             ),
           ),
           const SizedBox(width: 16),
@@ -351,37 +392,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: ElevatedButton(
               onPressed: _updateProfile,
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                backgroundColor: const Color(0xff368983),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Save'),
+              child: const Text(
+                'Save',
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
             ),
           ),
         ],
       );
     } else {
-      return Column(
-        children: [
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: _signOut,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                side: BorderSide(color: Colors.red.shade300),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text(
-                'Sign Out',
-                style: TextStyle(color: Colors.red.shade300),
-              ),
-            ),
+      return ElevatedButton(
+        onPressed: _signOut,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.red,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.red.shade300),
           ),
-        ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.logout, size: 20),
+            SizedBox(width: 8),
+            Text('Sign Out', style: TextStyle(fontSize: 16)),
+          ],
+        ),
       );
     }
   }

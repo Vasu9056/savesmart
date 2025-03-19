@@ -91,6 +91,7 @@ import 'package:flutter/material.dart';
 import 'package:savesmart/screens/add_expense.dart';
 import 'package:savesmart/screens/group/group_list_screen.dart';
 import 'package:savesmart/screens/home_screen.dart';
+import 'package:savesmart/screens/profile_screen.dart';
 import 'package:savesmart/screens/statistics_screen.dart';
 
 class Bottom extends StatefulWidget {
@@ -104,7 +105,7 @@ class _BottomState extends State<Bottom> {
   // ignore: non_constant_identifier_names
   int index_color = 0;
   // ignore: non_constant_identifier_names
-  List Screen = [Home(), Statistics(), GroupListScreen(), Home()];
+  List Screen = [Home(), Statistics(), GroupListScreen(), ProfileScreen()];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
