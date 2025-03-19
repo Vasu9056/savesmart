@@ -115,7 +115,7 @@ class _BottomState extends State<Bottom> {
         
         onPressed: () {
           Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => Add_Screen()));
+              .push(MaterialPageRoute(builder: (context) =>AddExpenseScreen()));
         },
         backgroundColor: Color(0xff368983),
         child: Icon(Icons.add,color: Colors.white,),

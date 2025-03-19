@@ -6,7 +6,7 @@ import 'package:savesmart/widgets/contact_list_item.dart';
 import 'package:savesmart/widgets/group_header.dart';
 import 'package:uuid/uuid.dart';
 import 'package:savesmart/data/models/group.dart' as expense_model;
-
+import 'package:share_plus/share_plus.dart';
 
 class CreateGroupScreen extends StatefulWidget {
   const CreateGroupScreen({super.key});
@@ -18,7 +18,9 @@ class CreateGroupScreen extends StatefulWidget {
 class _CreateGroupScreenState extends State<CreateGroupScreen> {
   List<Contact> contacts = [];
   List<Contact> selectedContacts = [];
+  List<Contact> filteredContacts = []; // Add filtered contacts list
   String groupName = "";
+  String searchQuery = ""; // Add search query state
   bool isLoading = true;
   String errorMessage = "";
   late Box<expense_model.Group> groupBox;
@@ -70,6 +72,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       if (mounted) {
         setState(() {
           contacts = fetchedContacts;
+          filteredContacts = fetchedContacts; // Initialize filtered contacts
           isLoading = false;
           if (contacts.isEmpty) {
             errorMessage = "No contacts found on device.";
@@ -104,6 +107,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   void _createGroup() async {
     if (groupName.isEmpty || selectedContacts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a group name and select at least one contact'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
     
@@ -123,6 +132,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       }
     }
     
+    // Generate group link
+    final groupLink = 'savesmart://join-group/$groupId';
+    
     // Create and save the group
     final newGroup = expense_model.Group(
       name: groupName,
@@ -130,20 +142,86 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       memberPhones: memberPhones,
       createdDate: DateTime.now(),
       id: groupId,
+      groupLink: groupLink,
     );
     
     await groupBox.add(newGroup);
+    print('Group saved with ID: ${newGroup.id}');
     
-    // Navigate to group details screen
+    // Show dialog with group link and share option
     if (mounted) {
-      Navigator.pushReplacementNamed(
-        context, 
-        '/group-details',
-        arguments: {
-          'groupId': groupId,
-        },
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Group Created'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Your group has been created! Share the link below to invite others:'),
+              const SizedBox(height: 10),
+              Text(
+                groupLink,
+                style: const TextStyle(color: Colors.blue, fontSize: 16),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                final result = await Share.share(
+                  'Join my group on SaveSmart: $groupLink',
+                  subject: 'Invite to Join Group',
+                );
+                if (result.status == ShareResultStatus.success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Group link shared successfully!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else if (result.status == ShareResultStatus.dismissed) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Share action was canceled.'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Share Link'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                // Navigate to group details screen
+                Navigator.pushReplacementNamed(
+                  context,
+                  '/group-details',
+                  arguments: {'groupId': groupId},
+                );
+              },
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
       );
     }
+  }
+
+  // Add search filter logic
+  void _filterContacts(String query) {
+    setState(() {
+      searchQuery = query;
+      if (query.isEmpty) {
+        filteredContacts = contacts;
+      } else {
+        filteredContacts = contacts
+            .where((contact) =>
+                contact.displayName.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+    });
   }
 
   @override
@@ -161,6 +239,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               setState(() {
                 isLoading = true;
                 errorMessage = "";
+                searchQuery = ""; // Reset search query on refresh
+                filteredContacts = contacts; // Reset filtered contacts
               });
               _getContactPermission();
             },
@@ -169,7 +249,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       ),
       body: Column(
         children: [
-          // Group header section with name input and selected contacts
           GroupHeader(
             groupName: groupName,
             onGroupNameChanged: (value) {
@@ -180,13 +259,49 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             selectedContacts: selectedContacts,
             onContactRemoved: _removeSelectedContact,
           ),
-          
-          // Contact list or loading/error states
+          // Add search bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: TextField(
+              onChanged: _filterContacts,
+              decoration: InputDecoration(
+                hintText: 'Search contacts...',
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: Color(0xff368983),
+                ),
+                suffixIcon: searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          color: Color(0xff368983),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            searchQuery = "";
+                            filteredContacts = contacts;
+                          });
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xff368983)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xff368983)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xff368983), width: 2),
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: _buildContactListSection(),
           ),
-          
-          // Create group button
           if (!isLoading && errorMessage.isEmpty)
             _buildCreateGroupButton(),
         ],
@@ -244,6 +359,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 setState(() {
                   isLoading = true;
                   errorMessage = "";
+                  searchQuery = ""; // Reset search query on retry
+                  filteredContacts = contacts; // Reset filtered contacts
                 });
                 _getContactPermission();
               },
@@ -257,7 +374,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       );
     }
     
-    if (contacts.isEmpty) {
+    if (filteredContacts.isEmpty) {
       return const Center(
         child: Text(
           "No contacts found",
@@ -270,9 +387,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     }
     
     return ListView.builder(
-      itemCount: contacts.length,
+      itemCount: filteredContacts.length, // Use filteredContacts instead of contacts
       itemBuilder: (context, index) {
-        final contact = contacts[index];
+        final contact = filteredContacts[index];
         final isSelected = selectedContacts.contains(contact);
         
         return ContactListItem(
@@ -288,9 +405,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       child: ElevatedButton(
-        onPressed: selectedContacts.isEmpty || groupName.isEmpty
-            ? null
-            : _createGroup,
+        onPressed: _createGroup,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xff368983),
           padding: const EdgeInsets.symmetric(vertical: 12),

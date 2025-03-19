@@ -22,13 +22,14 @@ class GroupAdapter extends TypeAdapter<Group> {
       memberPhones: (fields[2] as List).cast<String>(),
       createdDate: fields[3] as DateTime,
       id: fields[4] as String,
+      groupLink: fields[5] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Group obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class GroupAdapter extends TypeAdapter<Group> {
       ..writeByte(3)
       ..write(obj.createdDate)
       ..writeByte(4)
-      ..write(obj.id);
+      ..write(obj.id)
+      ..writeByte(5)
+      ..write(obj.groupLink);
   }
 
   @override

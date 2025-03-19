@@ -17,6 +17,9 @@ class Group extends HiveObject {
   
   @HiveField(4)
   String id;
+  
+  @HiveField(5) // Add new field for group link
+  String? groupLink;
 
   Group({
     required this.name,
@@ -24,6 +27,7 @@ class Group extends HiveObject {
     required this.memberPhones,
     required this.createdDate,
     required this.id,
+    this.groupLink,
   });
   
   // Helper method to get total number of members
