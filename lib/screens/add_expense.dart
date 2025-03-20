@@ -119,9 +119,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       groupId: widget.groupId,
     );
 
-    if (isEditing && widget.expenseKey != null) {
+    if (isEditing) {
       // Update existing expense
-      box.put(widget.expenseKey, expense);
+      widget.expenseToEdit!.IN = expense.IN;
+      widget.expenseToEdit!.amount = expense.amount;
+      widget.expenseToEdit!.datetime = expense.datetime;
+      widget.expenseToEdit!.explain = expense.explain;
+      widget.expenseToEdit!.name = expense.name;
+      widget.expenseToEdit!.save(); // Save changes to Hive
     } else {
       // Add new expense
       box.add(expense);
